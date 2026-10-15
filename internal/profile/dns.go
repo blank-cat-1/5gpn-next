@@ -3,6 +3,8 @@ package profile
 import (
 	"bytes"
 	"fmt"
+	"strings"
+	"unicode/utf8"
 )
 
 // PayloadTypeDNS 是加密 DNS 载荷类型（iOS 14+）。
@@ -13,8 +15,7 @@ const PayloadTypeDNS = "com.apple.dnsSettings.managed"
 // 描述文件只改 DNS，不建立 VPN 或中继连接。
 //   - 蜂窝：DoT 指向网关，国外域名 A 记录被改写到网关（由 dot 包完成），
 //     国内域名返回真实 IP，手机本地直连。
-//   - Wi-Fi：OnDemandRules 命中 Disconnect，完全使用 Wi-Fi 自身 DNS，
-//     不经过网关。
+//   - Wi-Fi：配置的 HotspotSSIDs 启用 DoT，其他 Wi-Fi 使用自身 DNS。
 //
 // Apple 官方 payload 注记：手动安装（非 MDM 下发）时对蜂窝网络同样生效，
 // 这正是本模式的前提。
@@ -24,6 +25,8 @@ type DNSOptions struct {
 	// ServerAddresses 是 DoT 服务器 IP（通常为 dns.gateway_ip）。
 	// 可为空：为空时系统按 Host 解析。
 	ServerAddresses []string
+	// HotspotSSIDs are exact Wi-Fi names allowed in addition to cellular.
+	HotspotSSIDs []string
 
 	Organization string
 	DisplayName  string
@@ -54,6 +57,20 @@ func (o DNSOptions) Build() ([]byte, error) {
 	if o.Host == "" {
 		return nil, fmt.Errorf("host 不能为空")
 	}
+	for _, ssid := range o.HotspotSSIDs {
+		if ssid == "" || len(ssid) > 32 || !utf8.ValidString(ssid) || strings.ContainsAny(ssid, "\x00\r\n") {
+			return nil, fmt.Errorf("热点名称必须是 1–32 字节的有效 UTF-8 文本，且不能包含换行或 NUL")
+		}
+	}
+	if len(o.HotspotSSIDs) > 0 {
+		defaults := DefaultDNS(o.Host)
+		if o.DisplayName == defaults.DisplayName {
+			o.DisplayName = "5gpn-NEXT 蜂窝与热点DNS"
+		}
+		if o.Description == defaults.Description {
+			o.Description = "5gpn-NEXT 加密 DNS 分流：蜂窝数据及指定热点下启用，其他 Wi-Fi 自动停用。不建立 VPN 或中继连接。"
+		}
+	}
 	if o.ProfileUUID == "" {
 		o.ProfileUUID = deriveUUID("dns-profile:" + o.Host)
 	}
@@ -68,12 +85,21 @@ func (o DNSOptions) Build() ([]byte, error) {
 		settings.set("ServerAddresses", strArray(o.ServerAddresses))
 	}
 
-	// 规则有序 first-match：蜂窝启用，其余（Wi-Fi/以太网/未知）一律停用。
+	// First match: cellular, optionally named hotspots, then disconnect elsewhere.
 	cellular := dict{}
 	cellular.set("InterfaceTypeMatch", str("Cellular"))
 	cellular.set("Action", str("Connect"))
 	fallback := dict{}
 	fallback.set("Action", str("Disconnect"))
+	rules := array{cellular}
+	if len(o.HotspotSSIDs) > 0 {
+		wifi := dict{}
+		wifi.set("InterfaceTypeMatch", str("WiFi"))
+		wifi.set("SSIDMatch", strArray(o.HotspotSSIDs))
+		wifi.set("Action", str("Connect"))
+		rules = append(rules, wifi)
+	}
+	rules = append(rules, fallback)
 
 	dns := dict{}
 	dns.set("PayloadType", str(PayloadTypeDNS))
@@ -84,7 +110,7 @@ func (o DNSOptions) Build() ([]byte, error) {
 	dns.set("PayloadDescription", str(o.Description))
 	dns.set("PayloadOrganization", str(o.Organization))
 	dns.set("DNSSettings", settings)
-	dns.set("OnDemandRules", array{cellular, fallback})
+	dns.set("OnDemandRules", rules)
 	dns.set("ProhibitDisablement", boolean(false))
 
 	root := dict{}

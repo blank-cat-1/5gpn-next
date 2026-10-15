@@ -102,6 +102,13 @@ func New(cfgPath string, cfg *config.Config, eng *policy.Engine, reg *egress.Reg
 	}
 }
 
+// DNSHotspotSSIDs returns an independent copy of the configured Wi-Fi names.
+func (m *Manager) DNSHotspotSSIDs() []string {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return append([]string(nil), m.Cfg.DNS.HotspotSSIDs...)
+}
+
 // SetRuntime 原子替换策略与出口引用，供热重载使用。
 func (m *Manager) SetRuntime(p *policy.Engine, e *egress.Registry) {
 	m.mu.Lock()

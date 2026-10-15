@@ -1,77 +1,18 @@
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="color-scheme" content="light">
-<meta name="theme-color" content="#ffffff">
-<title>5gpn-NEXT · 加密 DNS 网关</title>
-<link rel="stylesheet" href="/style.css">
-</head>
-<body>
-
-<header class="topbar">
-  <div class="wrap topbar-inner">
-    <a class="brand" href="/" aria-label="5gpn-NEXT 首页">
-      <span class="brand-mark">5G</span>
-      <span>5gpn<span class="brand-dim">-NEXT</span></span>
-    </a>
-    <div class="topbar-meta">
-      <span class="live"><i></i> 服务在线</span>
-      <span class="ver">{{.Version}}</span>
-    </div>
-  </div>
-</header>
-
-<div class="wrap phead">
-  <h1>管理面板</h1>
-  <p>关键状态每 15 秒自动刷新 · <span class="uptime" id="hero-uptime">加载中…</span></p>
-</div>
-
-<main class="wrap">
-
-  <div class="summary" aria-label="实时摘要">
-    <div class="sum-card"><span>DNS 查询</span><strong id="hero-dns">—</strong></div>
-    <div class="sum-card"><span>国外出口</span><strong id="hero-egress">—</strong></div>
-    <div class="sum-card"><span>今日拦截</span><strong id="hero-blocked">—</strong></div>
-  </div>
-
-  <section class="card" aria-labelledby="status-title">
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#981627"><title>5GPN · 控制中心</title><link rel="stylesheet" href="/style.css"></head><body><svg class="icon-library" aria-hidden="true"><symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c5 5 5 13 0 18M12 3c-5 5-5 13 0 18"/></symbol><symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v11h-7v-7h-4v7H3z"/></symbol><symbol id="i-split" viewBox="0 0 24 24"><path d="M5 5h14m-4-4 4 4-4 4M19 19H5m4-4-4 4 4 4"/></symbol><symbol id="i-nodes" viewBox="0 0 24 24"><circle cx="12" cy="4" r="2.5"/><circle cx="4" cy="19" r="2.5"/><circle cx="20" cy="19" r="2.5"/><path d="m11 6-6 11m8-11 6 11M7 19h10"/></symbol><symbol id="i-server" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="7" rx="3"/><rect x="3" y="14" width="18" height="7" rx="3"/><path d="M7 6.5h1m-1 11h1m4-11h5m-5 11h5"/></symbol><symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 2 8 4v6c0 5-8 10-8 10S4 17 4 12V6z"/><path d="m8 12 3 3 5-6"/></symbol><symbol id="i-wifi" viewBox="0 0 24 24"><path d="M2 8a16 16 0 0 1 20 0M5 12a11 11 0 0 1 14 0m-11 4a6 6 0 0 1 8 0M12 20h.01"/></symbol><symbol id="i-bolt" viewBox="0 0 24 24"><path d="m14 2-9 12h6l-1 8 9-12h-6z"/></symbol><symbol id="i-activity" viewBox="0 0 24 24"><path d="M2 12h5l3-9 4 18 3-9h5"/></symbol><symbol id="i-sliders" viewBox="0 0 24 24"><path d="M3 5h4m4 0h10M3 12h10m4 0h4M3 19h4m4 0h10"/><circle cx="9" cy="5" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="9" cy="19" r="2"/></symbol><symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol><symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol><symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 10a8 8 0 1 0-1 8M20 3v7h-7"/></symbol><symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="8" cy="8" r="2"/><path d="m3 17 5-5 4 4 3-7 6 8"/></symbol><symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 1v2m0 18v2M1 12h2m18 0h2M4 4l2 2m12 12 2 2M4 20l2-2M18 6l2-2"/></symbol><symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 14A9 9 0 0 1 10 3a9 9 0 1 0 11 11z"/></symbol><symbol id="i-list" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M9 7h6M9 12h6m-6 5h4"/></symbol></svg>
+<div class="wallpaper" aria-hidden="true"><svg class="poster" viewBox="0 0 430 1000" preserveAspectRatio="xMidYMid slice"><rect width="430" height="1000" fill="#f2eade"/><path fill="#bc001d" d="M0 0h430v270H0z"/><text x="-30" y="220" font-size="132" font-family="Arial,sans-serif" font-weight="900" fill="#f2eade" transform="rotate(-8 200 200)">5GPN</text><circle cx="363" cy="411" r="223" fill="#edd529"/><path fill="#17191a" d="M329 266c-15-11-41-7-48 21s-4 53 12 55 37-12 42-37 3-33-6-39"/><circle cx="294" cy="285" r="11" fill="#fff"/><path d="M175 430c30 88 145 108 205 3" fill="none" stroke="#16191a" stroke-width="18" stroke-linecap="round"/><path d="m-65 782 370-152 153 145-388 224z" fill="#c00029"/><path d="m-42 820 333-130 40 36L-20 873z" fill="#f6eadc"/><ellipse cx="344" cy="684" rx="118" ry="172" fill="#e29db5" transform="rotate(27 344 684)"/><circle cx="-40" cy="386" r="135" fill="#f3db31"/><path d="m236 951 194-99v148H199z" fill="#1446a0"/><text x="-30" y="925" font-size="125" font-family="Arial,sans-serif" font-weight="900" fill="#f2eade" transform="rotate(-15 150 850)">PRIVATE</text></svg></div><div class="app-shell">
+<header class="masthead"><a class="brand" href="#home"><svg class="icon" aria-hidden="true"><use href="#i-globe"/></svg><span><b>5GPN</b><small>PRIVATE GATEWAY</small></span></a><div class="header-actions"><button class="round-btn" id="refresh-all" aria-label="刷新状态"><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg></button><button class="round-btn" id="wallpaper-pick" aria-label="更换背景"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg></button><input id="wallpaper-file" type="file" accept="image/*" hidden></div></header>
+<div class="page-heading"><div><p id="page-kicker">你的网络，由你掌控。</p><h1 id="page-title">控制中心</h1></div><span class="connection" id="connection-state"><i></i>连接中</span></div>
+<section class="glass auth-card" id="auth-notice" role="status" ><h2 id="auth-title">连接内网网关</h2><p id="auth-message">正在读取网关状态，请稍候。</p></section><main id="management-content" hidden>
+<section class="view" data-page="home" aria-label="控制中心"><div class="dashboard">
+<button class="glass overview-card" data-view="tools" data-section="status-title"><div class="micro-heading"><span>运行概览</span><span class="small-pill" id="home-domestic-state">同步中</span></div><div class="overview-count"><strong id="home-rule-count">—</strong><span>条策略规则</span></div><p class="overview-runtime" id="home-run-time">等待网关连接</p><div class="tile-bottom"><span>查看状态</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></div></button>
+<button class="glass exit-card" data-view="nodes"><div class="exit-top"><svg class="icon" aria-hidden="true"><use href="#i-server"/></svg><span class="small-pill">出口配置</span></div><div class="exit-name"><span class="node-dot"></span><strong id="hero-egress">等待连接</strong></div><p class="exit-caption" id="exit-caption">查看并选择出口节点</p><div class="tile-bottom"><span>管理出口</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></div></button>
+<section class="glass protection-strip"><button class="protection-open" data-view="protection"><span class="strip-icon"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg></span><span class="strip-copy"><strong>广告拦截</strong><small id="home-protection-detail">等待同步拦截状态</small></span></button><button class="switch-visual" id="home-adblock-state" type="button" role="switch" aria-checked="false" aria-label="启用广告拦截" disabled><i></i></button></section></div>
+<div class="quick-actions"><button class="shortcut" data-view="rules"><span><svg class="icon" aria-hidden="true"><use href="#i-split"/></svg></span><small>规则管理</small></button><button class="shortcut" data-view="tools" data-section="probe-title"><span><svg class="icon" aria-hidden="true"><use href="#i-wifi"/></svg></span><small>连通诊断</small></button><button class="shortcut" data-view="tools" data-section="health-title"><span><svg class="icon" aria-hidden="true"><use href="#i-activity"/></svg></span><small>健康监控</small></button><button class="shortcut" data-view="protection"><span><svg class="icon" aria-hidden="true"><use href="#i-list"/></svg></span><small>拦截记录</small></button></div>
+<div class="lower-grid"><button class="glass node-tile" data-view="nodes"><div class="node-tile-top"><svg class="icon" aria-hidden="true"><use href="#i-nodes"/></svg><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></div><strong>节点与出口</strong><p>原有配置，集中管理。</p><small id="home-node-count">管理节点 · 切换出口</small></button><div class="theme-pair" aria-label="外观"><button class="glass theme-pillar selected" data-theme="light" aria-pressed="true"><span class="pillar-fill"></span><span class="pillar-label"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg><small>明亮</small></span></button><button class="glass theme-pillar" data-theme="dark" aria-pressed="false"><span class="pillar-fill"></span><span class="pillar-label"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg><small>深色</small></span></button></div></div>
+<section class="glass live-stats"><div class="stats-title"><span class="tiny-dot"></span>运行摘要<span>LIVE</span></div><div class="stats-numbers"><div><strong id="hero-dns">—</strong><small>DNS 查询</small></div><div><strong id="hero-blocked">—</strong><small>今日拦截</small></div><div><strong id="home-memory">—</strong><small>运行内存</small></div></div></section><div class="service-foot"><span class="tiny-dot"></span><span id="hero-uptime">等待连接网关</span><span class="preview-label" id="preview-label" hidden>演示数据</span></div></section>
+<section class="view" data-page="rules" hidden>  <section class="card" aria-labelledby="rules-title">
     <div class="chead">
-      <h2 id="status-title"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 20V10M12 20V4M20 20v-7"/></svg></span>运行概览</h2>
-    </div>
-    <div class="stat-grid" id="stat-grid" aria-live="polite">
-      <div class="stat"><span class="stat-label">加载中</span><span class="stat-value">—</span></div>
-    </div>
-  </section>
-
-  <section class="card" aria-labelledby="health-title">
-    <div class="chead">
-      <h2 id="health-title"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>健康监控</h2>
-    </div>
-    <p class="intro">出口探测与真实转发质量（1 小时窗口），每 60 秒采样一次。</p>
-    <div id="health-list" class="rows"></div>
-    <div class="stat-grid" id="health-sys"></div>
-  </section>
-
-  <section class="card" aria-labelledby="egress-title">
-    <div class="chead">
-      <h2 id="egress-title"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4M3 6h18M7 22l-4-4 4-4M21 18H3"/></svg></span>国外默认出口</h2>
-    </div>
-    <p class="intro">只决定国外未命中流量。国内域名与 GEOIP 规则优先直连，自定义规则拥有最高优先级。</p>
-    <div id="egress-list" class="rows"></div>
-
-    <div class="form">
-      <label for="egress-link">添加出口</label>
-      <textarea id="egress-link" rows="2"
-        placeholder="粘贴节点分享链接，支持 ss:// vless:// vmess:// trojan:// hysteria2:// tuic:// socks5://"></textarea>
-      <div class="act"><button class="btn" id="egress-add" type="button">添加出口</button></div>
-    </div>
-  </section>
-
-  <section class="card" aria-labelledby="rules-title">
-    <div class="chead">
-      <h2 id="rules-title"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M8 21H3v-5M21 3l-7 7M3 21l7-7"/></svg></span>分流规则</h2>
+      <h2 id="rules-title"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M8 21H3v-5M21 3l-7 7M3 21l7-7"/></svg></span>规则管理</h2>
       <span class="note">有序匹配 · 命中即停</span>
     </div>
     <div id="rules-list" class="rows"></div>
@@ -82,9 +23,20 @@
       <div class="act"><button class="btn" id="rule-add" type="button">添加规则</button></div>
       <p class="hint"><b>类型：</b>DOMAIN、DOMAIN-SUFFIX、DOMAIN-KEYWORD、IP-CIDR、RULE-SET、GEOIP　·　<b>动作：</b>direct、block、proxy:出口名</p>
     </div>
-  </section>
+  </section></section><section class="view" data-page="nodes" hidden>  <section class="card" aria-labelledby="egress-title">
+    <div class="chead">
+      <h2 id="egress-title"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4M3 6h18M7 22l-4-4 4-4M21 18H3"/></svg></span>国外默认出口</h2>
+    </div>
+    <p class="intro">沿用原项目逻辑：切换国外默认出口，自定义规则与内置规则保持原有优先级。</p>
+    <div id="egress-list" class="rows"></div>
 
-  <section class="card" aria-labelledby="probe-title">
+    <div class="form">
+      <label for="egress-link">添加出口</label>
+      <textarea id="egress-link" rows="2"
+        placeholder="粘贴节点分享链接，支持 ss:// vless:// vmess:// trojan:// hysteria2:// tuic:// socks5://"></textarea>
+      <div class="act"><button class="btn" id="egress-add" type="button">添加出口</button></div>
+    </div>
+  </section></section><section class="view" data-page="tools" hidden>  <section class="card" aria-labelledby="probe-title">
     <div class="chead">
       <h2 id="probe-title"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></span>连通诊断</h2>
     </div>
@@ -94,9 +46,21 @@
       <button class="btn" id="probe-run" type="button">开始诊断</button>
     </div>
     <pre id="probe-out" class="probe-out" hidden></pre>
-  </section>
-
-  <section class="card" aria-labelledby="adblock-title">
+  </section>  <section class="card" aria-labelledby="health-title">
+    <div class="chead">
+      <h2 id="health-title"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>健康监控</h2>
+    </div>
+    <p class="intro">出口探测与真实转发质量（1 小时窗口），每 60 秒采样一次。</p>
+    <div id="health-list" class="rows"></div>
+    <div class="stat-grid" id="health-sys"></div>
+  </section>  <section class="card" aria-labelledby="status-title">
+    <div class="chead">
+      <h2 id="status-title"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 20V10M12 20V4M20 20v-7"/></svg></span>运行概览</h2>
+    </div>
+    <div class="stat-grid" id="stat-grid" aria-live="polite">
+      <div class="stat"><span class="stat-label">加载中</span><span class="stat-value">—</span></div>
+    </div>
+  </section></section><section class="view" data-page="protection" hidden>  <section class="card" aria-labelledby="adblock-title">
     <div class="chead">
       <h2 id="adblock-title"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M9 12l2 2 4-4"/></svg></span>广告拦截</h2>
       <button class="btn btn-state" id="adblock-toggle" type="button" disabled>加载中…</button>
@@ -129,17 +93,7 @@
         <button class="btn" id="ad-allow-add" type="button">加入白名单</button>
       </div>
     </div>
-  </section>
-
-  <footer>
-    <span>5gpn-NEXT</span>
-    <span>只记录聚合流量与广告命中，不保存正常访问明细。</span>
-  </footer>
-
-</main>
-
-<div id="toast" class="toast" hidden role="status" aria-live="polite"></div>
-
-<script src="/app.js"></script>
-</body>
-</html>
+  </section></section>
+<section class="view" data-page="settings" hidden><section class="card"><div class="chead"><h2>外观设置</h2></div><p class="intro">让控制中心更像你。</p><div class="settings-appearance"><button class="btn" data-theme="light"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg> 明亮</button><button class="btn" data-theme="dark"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg> 深色</button></div><button class="setting-row" data-pick-wallpaper><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><span>选择背景图片<small>仅保留在当前页面会话</small></span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></button><button class="setting-row" id="wallpaper-reset"><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg><span>恢复默认背景</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></button></section><section class="card"><div class="chead"><h2>访问权限</h2><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg></div><p class="intro" id="access-detail">正在验证</p><div class="setting-row"><span>服务版本</span><code>{{.Version}}</code></div><p class="hint">请在允许的内网中使用。机器人菜单仍按配置的 Telegram 管理员 ID 响应。</p></section></section>
+</main><div id="toast" class="toast" hidden role="status" aria-live="polite"></div></div>
+<nav class="dock" id="management-dock" aria-label="主导航" hidden><button class="active" data-view="home"><span><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg></span><small>首页</small></button><button class="nav-item" data-view="rules"><span><svg class="icon" aria-hidden="true"><use href="#i-split"/></svg></span><small>规则</small></button><button class="nav-item" data-view="nodes"><span><svg class="icon" aria-hidden="true"><use href="#i-nodes"/></svg></span><small>节点</small></button><button class="nav-item" data-view="tools"><span><svg class="icon" aria-hidden="true"><use href="#i-activity"/></svg></span><small>诊断</small></button><button class="nav-item" data-view="settings"><span><svg class="icon" aria-hidden="true"><use href="#i-sliders"/></svg></span><small>设置</small></button></nav><script src="/app.js"></script></body></html>

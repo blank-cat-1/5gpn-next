@@ -4,6 +4,17 @@
 
 const $ = (id) => document.getElementById(id);
 let currentStatus = null;
+let accessDenied = false;
+
+function denyAccess(message) {
+  accessDenied = true;
+  $('management-content').hidden = true;
+  $('management-dock').hidden = true;
+  $('auth-notice').hidden = false;
+  $('auth-title').textContent = '无法访问内网面板';
+  $('auth-message').textContent = message;
+  $('connection-state').textContent = '无法连接';
+}
 
 // ---------- 通用 ----------
 
@@ -17,12 +28,13 @@ function toast(msg, isErr) {
 }
 
 async function api(path, opts) {
-  const res = await fetch(path, Object.assign({
-    headers: { 'Content-Type': 'application/json' },
-  }, opts || {}));
+  if (accessDenied) throw new Error('请连接允许的内网后重新打开面板');
+  const headers = Object.assign({ 'Content-Type': 'application/json' }, opts && opts.headers);
+  const res = await fetch(path, Object.assign({}, opts, { headers, cache: 'no-store' }));
   let data = null;
   try { data = await res.json(); } catch (_) { /* 忽略非 JSON 响应 */ }
   if (!res.ok) {
+    if (res.status === 401 || res.status === 403) denyAccess((data && data.error) || '无管理权限');
     throw new Error((data && data.error) || ('请求失败 ' + res.status));
   }
   return data;
@@ -69,6 +81,8 @@ const COUNTER_LABELS = {
 
 function renderStatus(st) {
   currentStatus = st;
+  $('connection-state').replaceChildren(el('i'), document.createTextNode('网关在线'));
+  $('connection-state').classList.remove('offline');
   const grid = $('stat-grid');
   grid.textContent = '';
 
@@ -110,6 +124,17 @@ function renderStatus(st) {
 
   renderAdBlock(ad);
   renderEgress(st.egress || [], st.domestic_ready);
+  $('home-memory').textContent = Number(st.memory_mb || 0).toFixed(1) + ' MB';
+  $('home-protection-detail').textContent = ad.enabled ? ('今日已拦截 ' + number(hits.today) + ' 次') : '当前未开启';
+  $('home-adblock-state').classList.toggle('on', !!ad.enabled);
+  $('home-adblock-state').setAttribute('aria-checked', String(!!ad.enabled));
+  $('home-adblock-state').disabled = false;
+  $('home-node-count').textContent = (st.egress || []).length + ' 个出口 · 点击管理';
+  $('exit-caption').textContent = (activeEgress ? activeEgress.type : '—') + ' · 当前国外默认出口';
+  $('home-rule-count').textContent = number(st.rules);
+  $('home-run-time').textContent = '已运行 ' + (st.uptime || '—');
+  $('home-domestic-state').textContent = st.domestic_ready === false ? '规则待就绪' : '规则已就绪';
+  $('home-domestic-state').classList.toggle('warning', st.domestic_ready === false);
 }
 
 function renderAdBlock(ad) {
@@ -248,6 +273,7 @@ async function loadStatus() {
   try {
     renderStatus(await api('/api/status'));
   } catch (err) {
+    if (!accessDenied) { $('connection-state').textContent = '连接中断'; $('connection-state').classList.add('offline'); }
     toast(err.message, true);
   }
 }
@@ -370,6 +396,7 @@ async function runProbe() {
 
 // ---------- 事件绑定 ----------
 
+$('home-adblock-state').addEventListener('click', () => $('adblock-toggle').click());
 $('adblock-toggle').onclick = () => {
   const enabled = currentStatus && currentStatus.ad_block && currentStatus.ad_block.enabled;
   if (enabled && !confirm('关闭后，广告域名将恢复正常解析。确认关闭？')) return;
@@ -423,9 +450,6 @@ $('rule-input').addEventListener('keydown', (event) => {
   if (event.key === 'Enter') $('rule-add').click();
 });
 
-loadStatus();
-loadRules();
-setInterval(loadStatus, 15000);
 
 // ---------- 健康监控 ----------
 
@@ -494,5 +518,114 @@ async function loadHealth() {
   } catch (_) { /* 健康数据失败不打扰 */ }
 }
 
-loadHealth();
-setInterval(loadHealth, 30000);
+
+// Telegram window adaptation; browser and Mini App share the original CIDR access policy.
+let tg;
+function adaptTelegram() {
+  tg = window.Telegram && window.Telegram.WebApp;
+  if (!tg || !tg.initData) return;
+  tg.ready(); tg.expand();
+  tg.setHeaderColor('#932d45'); tg.setBackgroundColor('#932d45');
+  const syncSafeArea = () => document.body.style.setProperty('--mini-safe-top', ((tg.contentSafeAreaInset && tg.contentSafeAreaInset.top) || 0) + 'px');
+  syncSafeArea(); tg.onEvent('contentSafeAreaChanged', syncSafeArea);
+  if (tg.BackButton) tg.BackButton.onClick(() => showPage('home'));
+}
+adaptTelegram();
+// Ordinary internal browser access has no external SDK dependency.
+if (!tg && location.hash.includes('tgWebApp')) {
+  const sdk = document.createElement('script');
+  sdk.src = 'https://telegram.org/js/telegram-web-app.js';
+  sdk.async = true;
+  sdk.onload = adaptTelegram;
+  document.head.appendChild(sdk);
+}
+const pages = {
+  home: ['控制中心', '你的网络，由你掌控。'],
+  rules: ['规则管理', '查看内置规则，管理自定义规则。'],
+  nodes: ['节点与出口', '选择出口，连接更大的世界。'],
+  tools: ['网络诊断', '连接状态，一眼知晓。'],
+  protection: ['广告拦截', '少一点打扰，多一份清净。'],
+  settings: ['偏好设置', '照你的习惯，安排一切。'],
+};
+let activePage = 'home';
+function showPage(name, section) {
+  if (!(name in pages) || accessDenied || $('management-content').hidden) return;
+  activePage = name;
+  document.querySelectorAll('[data-page]').forEach(page => { page.hidden = page.dataset.page !== name; });
+  document.querySelectorAll('.dock [data-view]').forEach(button => {
+    const selected = button.dataset.view === name;
+    button.classList.toggle('active', selected);
+    if (selected) button.setAttribute('aria-current', 'page'); else button.removeAttribute('aria-current');
+  });
+  $('page-title').textContent = pages[name][0];
+  $('page-kicker').textContent = pages[name][1];
+  if (tg && tg.initData && tg.BackButton) {
+    if (name === 'home') tg.BackButton.hide(); else tg.BackButton.show();
+  }
+  window.scrollTo({top: 0, behavior: 'instant'});
+  if (section && $(section)) requestAnimationFrame(() => $(section).scrollIntoView({block: 'start'}));
+}
+document.querySelectorAll('[data-view]').forEach(button => button.addEventListener('click', () => showPage(button.dataset.view, button.dataset.section)));
+document.querySelector('.brand').addEventListener('click', event => { event.preventDefault(); showPage('home'); });
+function setTheme(theme) {
+  document.body.classList.toggle('dark', theme === 'dark');
+  document.querySelectorAll('[data-theme]').forEach(button => {
+    button.classList.toggle('selected', button.dataset.theme === theme);
+    button.setAttribute('aria-pressed', String(button.dataset.theme === theme));
+  });
+  try { localStorage.setItem('5gpn-theme', theme); } catch (_) {}
+}
+let savedTheme = 'light';
+try { if (localStorage.getItem('5gpn-theme') === 'dark') savedTheme = 'dark'; } catch (_) {}
+setTheme(savedTheme);
+document.querySelectorAll('[data-theme]').forEach(button => button.addEventListener('click', () => setTheme(button.dataset.theme)));
+$('refresh-all').addEventListener('click', async () => {
+  if (accessDenied || $('management-content').hidden) return;
+  const button = $('refresh-all'); button.disabled = true;
+  try { await Promise.all([loadStatus(), loadRules(), loadHealth()]); }
+  finally { button.disabled = false; }
+});
+document.querySelectorAll('[data-pick-wallpaper]').forEach(button => button.addEventListener('click', () => $('wallpaper-file').click()));
+$('wallpaper-reset').addEventListener('click', () => {
+  if (wallpaperURL) URL.revokeObjectURL(wallpaperURL);
+  wallpaperURL = undefined;
+  document.body.style.removeProperty('--wallpaper');
+  document.body.classList.remove('custom-wallpaper');
+  $('wallpaper-file').value = '';
+  toast('已恢复默认背景');
+});
+$('wallpaper-pick').addEventListener('click', () => $('wallpaper-file').click());
+let wallpaperURL;
+$('wallpaper-file').addEventListener('change', () => {
+  const file = $('wallpaper-file').files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/') || file.size > 10 * 1024 * 1024) { toast('请选择 10 MB 以内的图片', true); return; }
+  if (wallpaperURL) URL.revokeObjectURL(wallpaperURL);
+  wallpaperURL = URL.createObjectURL(file);
+  document.body.style.setProperty('--wallpaper', 'url("' + wallpaperURL + '")');
+  document.body.classList.add('custom-wallpaper');
+});
+
+async function startManagement() {
+  try {
+    const status = await api('/api/status');
+    if (accessDenied) return;
+    $('auth-notice').hidden = true;
+    $('management-content').hidden = false;
+    $('management-dock').hidden = false;
+    $('access-detail').textContent = '仅允许配置的内网来源访问。网页和 Telegram 使用同一套管理功能。';
+    showPage('home');
+    renderStatus(status); loadRules(); loadHealth();
+    const statusTimer = setInterval(() => {
+      if (accessDenied) { clearInterval(statusTimer); return; }
+      loadStatus();
+    }, 15000);
+    const healthTimer = setInterval(() => {
+      if (accessDenied) { clearInterval(healthTimer); return; }
+      loadHealth();
+    }, 30000);
+  } catch (err) {
+    denyAccess(err.message);
+  }
+}
+startManagement();

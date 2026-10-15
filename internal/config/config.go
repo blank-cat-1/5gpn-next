@@ -94,6 +94,8 @@ type DNSConfig struct {
 	TLSListen  string `json:"tls_listen"`
 	// Upstream 是 DNS 上游
 	Upstream []string `json:"upstream"`
+	// Optional named hotspots; empty retains the original cellular-only profile.
+	HotspotSSIDs []string `json:"hotspot_ssids,omitempty"`
 	// QUICTakeover 接管客户端的 QUIC（UDP 443）流量。
 	//
 	// 关闭时回到旧行为：防火墙 reject UDP 443，指望客户端回落 TCP。

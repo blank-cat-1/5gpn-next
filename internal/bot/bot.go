@@ -752,6 +752,9 @@ func (b *Bot) showMenu(ctx context.Context, v view) {
 		[]btn{{"🛡 广告", "adblock"}, {"🩺 诊断", "ask_probe"}},
 		[]btn{{"📱 接入", "client"}, {"♻️ 更新", "update"}},
 	)
+	if b.PanelURL != "" {
+		rows = append(rows, []btn{{"🖥 管理面板", "panel"}})
+	}
 	b.render(ctx, v, sb.String(), inlineKeyboard(rows...))
 }
 
@@ -1326,7 +1329,7 @@ func (b *Bot) showClient(ctx context.Context, v view) {
 	var sb strings.Builder
 	sb.WriteString(pageHead("📱", "接入"))
 	sb.WriteString("<b>iPhone / iPad</b>\n")
-	sb.WriteString(card("安装描述文件，仅蜂窝数据生效；连 Wi-Fi 自动停用。国内流量手机直连，国外才走出口。") + "\n")
+	sb.WriteString(card("安装描述文件。"+b.dnsNetworkNotice()+"国内流量手机直连，国外才走出口。") + "\n")
 	sb.WriteString("<b>Android</b>\n")
 	sb.WriteString(card("系统「私人 DNS」填入网关域名即可，不用装 App。"))
 	if b.PanelURL != "" {
@@ -1340,7 +1343,7 @@ func (b *Bot) showClient(ctx context.Context, v view) {
 	}
 	rows = append(rows, []btn{{"🤖 Android 接入", "android_guide"}})
 	if b.PanelURL != "" {
-		rows = append(rows, []btn{{"🖥 打开面板", "url:" + b.PanelURL}})
+		rows = append(rows, []btn{{"打开管理小程序", "webapp:" + b.PanelURL}, {"网页面板", "url:" + b.PanelURL}})
 	}
 	rows = append(rows, []btn{btnHome()})
 	b.render(ctx, v, sb.String(), inlineKeyboard(rows...))
@@ -1365,7 +1368,8 @@ func (b *Bot) showPanel(ctx context.Context, v view) {
 	sb.WriteString("🔒 仅内网卡来源可访问，公网完全无法连接。")
 
 	b.render(ctx, v, sb.String(), inlineKeyboard(
-		[]btn{{"🖥 打开面板", "url:" + b.PanelURL}},
+		[]btn{{"打开管理小程序", "webapp:" + b.PanelURL}},
+		[]btn{{"网页面板", "url:" + b.PanelURL}},
 		[]btn{btnHome()},
 	))
 }
@@ -1614,6 +1618,14 @@ func (b *Bot) doRollback(ctx context.Context, v view, tag string) {
 
 // ---------- 描述文件 ----------
 
+func (b *Bot) dnsNetworkNotice() string {
+	ssids := b.Manager.DNSHotspotSSIDs()
+	if len(ssids) == 0 {
+		return "仅蜂窝数据生效，Wi-Fi 完全不受影响。"
+	}
+	return "蜂窝数据及热点「" + html.EscapeString(strings.Join(ssids, "、")) + "」生效，其他 Wi-Fi 停用。"
+}
+
 // sendDNSProfile 下发「蜂窝 DNS 模式」描述文件。
 func (b *Bot) sendDNSProfile(ctx context.Context, v view) {
 	if b.Manager.DNSProfileBytes == nil {
@@ -1635,11 +1647,11 @@ func (b *Bot) sendDNSProfile(ctx context.Context, v view) {
 			qrCaption := "<b>iOS 蜂窝 DNS 描述文件</b>\n\n" +
 				"<b>方式一：扫码安装</b>\n" +
 				"1. 如已安装旧版 5gpn 描述文件，请先删除\n" +
-				"2. 手机走<b>内网卡蜂窝数据</b>，用相机或 Safari 扫码\n" +
+				"2. 手机接入<b>可访问网关的内网</b>，用相机或 Safari 扫码\n" +
 				"3. 打开 设置 → 通用 → VPN 与设备管理并安装\n\n" +
 				"<b>方式二：点击下方文件下载</b>\n\n" +
 				"链接：<code>" + html.EscapeString(profileURL) + "</code>\n\n" +
-				"<i>✅ 仅蜂窝数据生效，Wi-Fi 完全不受影响；国内 IP 手机本地直连。\n" +
+				"<i>✅ " + b.dnsNetworkNotice() + "国内 IP 手机本地直连。\n" +
 				"⚠️ 链接含随机串，请勿外传；仅内网卡来源可访问。</i>"
 			if err := b.sendPhoto(ctx, v.chatID, "5gpn-next-dns.png", png, qrCaption); err != nil {
 				log.Printf("Bot 发送描述文件二维码失败: %v", err)
@@ -1653,7 +1665,7 @@ func (b *Bot) sendDNSProfile(ctx context.Context, v view) {
 		"1. 如已安装旧版 5gpn 描述文件，请先删除\n" +
 		"2. 点击上方文件并选择下载\n" +
 		"3. 打开 设置 → 通用 → VPN 与设备管理并安装\n\n" +
-		"<i>✅ 仅蜂窝数据生效，Wi-Fi 完全不受影响；国内 IP 手机本地直连。\n" +
+		"<i>✅ " + b.dnsNetworkNotice() + "国内 IP 手机本地直连。\n" +
 		"⚠️ 加密 DNS 无法识别少数无 SNI 私有协议，这是当前方案的明确边界。</i>"
 	if sentQR {
 		docCaption = "<b>描述文件</b>\n\n也可直接点开这个文件下载安装。"
@@ -1766,14 +1778,23 @@ type btn struct {
 // Data 以 "url:" 开头时渲染为链接按钮，其余为回调按钮。
 func inlineKeyboard(rows ...[]btn) string {
 	type ib struct {
-		Text string `json:"text"`
-		Data string `json:"callback_data,omitempty"`
-		URL  string `json:"url,omitempty"`
+		Text   string `json:"text"`
+		Data   string `json:"callback_data,omitempty"`
+		URL    string `json:"url,omitempty"`
+		WebApp *struct {
+			URL string `json:"url"`
+		} `json:"web_app,omitempty"`
 	}
 	out := make([][]ib, 0, len(rows))
 	for _, r := range rows {
 		row := make([]ib, 0, len(r))
 		for _, e := range r {
+			if strings.HasPrefix(e.Data, "webapp:") {
+				row = append(row, ib{Text: e.Text, WebApp: &struct {
+					URL string `json:"url"`
+				}{URL: strings.TrimPrefix(e.Data, "webapp:")}})
+				continue
+			}
 			if strings.HasPrefix(e.Data, "url:") {
 				row = append(row, ib{Text: e.Text, URL: strings.TrimPrefix(e.Data, "url:")})
 				continue

@@ -27,12 +27,22 @@ import (
 )
 
 const (
-	repo       = "w0ven/5gpn-next"
 	binPath    = "/usr/local/bin/5gpnd"
 	stateDir   = "/var/lib/5gpn-next"
 	backupDir  = stateDir + "/versions"
 	maxBinSize = 80 << 20
 )
+
+// repo is pinned at build time. An empty value makes a manually distributed
+// custom build refuse upstream downloads without changing the user's config.
+var repo = "blank-cat-1/5gpn-next"
+
+func requireReleaseSource() error {
+	if repo == "" {
+		return fmt.Errorf("此定制构建未配置发布源，请使用定制更新包；不会下载原版覆盖当前程序")
+	}
+	return nil
+}
 
 // Release 是一个发布版本。
 type Release struct {
@@ -65,10 +75,10 @@ type Manager struct {
 
 // 升级阶段常量。
 const (
-	StageDownload = "download"  // 下载二进制
-	StageVerify   = "verify"    // SHA256 校验
-	StageBackup   = "backup"    // 备份当前版本
-	StageRestart  = "restart"   // 调度事务，即将重启
+	StageDownload = "download" // 下载二进制
+	StageVerify   = "verify"   // SHA256 校验
+	StageBackup   = "backup"   // 备份当前版本
+	StageRestart  = "restart"  // 调度事务，即将重启
 )
 
 func (m *Manager) stage(stage, detail string) {
@@ -88,6 +98,9 @@ func New(current string) *Manager {
 
 // Latest 查询最新正式版本。
 func (m *Manager) Latest(ctx context.Context) (*Release, error) {
+	if err := requireReleaseSource(); err != nil {
+		return nil, err
+	}
 	url := fmt.Sprintf("https://api.github.com/repos/%s/releases/latest", repo)
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -185,6 +198,9 @@ func (m *Manager) ShouldNotify(tag string) bool {
 // 流程：下载 → 校验 SHA256 → 备份当前 → 原子替换 → 重启 → 验证。
 // 重启后若服务未起来，自动回退到备份版本。
 func (m *Manager) Apply(ctx context.Context, tag string) (string, error) {
+	if err := requireReleaseSource(); err != nil {
+		return "", err
+	}
 	// 幂等保护：目标不比当前新一律拒绝。
 	// 典型场景是 Telegram 重投旧的「立即升级」回调 ——
 	// 若不拦截会造成 升级→重启→重放→再升级 的死循环。

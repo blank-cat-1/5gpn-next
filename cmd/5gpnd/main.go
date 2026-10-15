@@ -300,6 +300,7 @@ func cmdRun(args []string) error {
 	profilePath := a.cfg.Gateway.ProfilePath
 	buildProfile := func() ([]byte, error) {
 		o := profile.DefaultDNS(a.cfg.Gateway.Host)
+		o.HotspotSSIDs = a.cfg.DNS.HotspotSSIDs
 		if a.cfg.DNS.GatewayIP != "" {
 			o.ServerAddresses = []string{a.cfg.DNS.GatewayIP}
 		}
@@ -595,13 +596,13 @@ func cmdRun(args []string) error {
 		hints := hint.New()
 
 		sn := &sniff.Server{
-			Policy:     rt.Policy,
-			Egress:     rt.Egress,
-			Recorder:   rec,
-			OnConn:     traffic.Conn,
-			OnTraffic:  traffic.Traffic,
-			HintLookup: hints.Lookup,
-			ClientCIDR: clientPfx,
+			Policy:          rt.Policy,
+			Egress:          rt.Egress,
+			Recorder:        rec,
+			OnConn:          traffic.Conn,
+			OnTraffic:       traffic.Traffic,
+			HintLookup:      hints.Lookup,
+			ClientCIDR:      clientPfx,
 			OnDial:          health.RecordForward,
 			OnEgressTraffic: health.AddEgressTraffic,
 		}
@@ -649,13 +650,13 @@ func cmdRun(args []string) error {
 		// Initial 包的 SNI 并按策略转发 UDP，让 HTTP/3 直接走通。
 		if a.cfg.DNS.QUICTakeoverEnabled() {
 			qs := &quicfwd.Server{
-				Policy:     rt.Policy,
-				Egress:     rt.Egress,
-				Recorder:   rec,
-				OnConn:     traffic.Conn,
-				OnTraffic:  traffic.Traffic,
-				HintLookup: hints.Lookup,
-				ClientCIDR: clientPfx,
+				Policy:          rt.Policy,
+				Egress:          rt.Egress,
+				Recorder:        rec,
+				OnConn:          traffic.Conn,
+				OnTraffic:       traffic.Traffic,
+				HintLookup:      hints.Lookup,
+				ClientCIDR:      clientPfx,
 				OnDial:          health.RecordForward,
 				OnEgressTraffic: health.AddEgressTraffic,
 			}
@@ -933,6 +934,7 @@ func cmdProfile(args []string) error {
 	}
 
 	o := profile.DefaultDNS(cfg.Gateway.Host)
+	o.HotspotSSIDs = cfg.DNS.HotspotSSIDs
 	if cfg.DNS.GatewayIP != "" {
 		o.ServerAddresses = []string{cfg.DNS.GatewayIP}
 	}
@@ -947,7 +949,12 @@ func cmdProfile(args []string) error {
 	if err := os.WriteFile(out, b, 0o600); err != nil {
 		return err
 	}
-	fmt.Printf("已生成 %s\n  DoT = %s:853\n  仅蜂窝数据启用，Wi-Fi 不受影响\n", out, cfg.Gateway.Host)
+	fmt.Printf("已生成 %s\n  DoT = %s:853\n", out, cfg.Gateway.Host)
+	if len(cfg.DNS.HotspotSSIDs) > 0 {
+		fmt.Printf("  蜂窝及热点 %s 启用，其他 Wi-Fi 停用\n", strings.Join(cfg.DNS.HotspotSSIDs, "、"))
+	} else {
+		fmt.Println("  仅蜂窝数据启用，Wi-Fi 不受影响")
+	}
 	return nil
 }
 

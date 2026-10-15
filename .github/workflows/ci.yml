@@ -4,6 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -19,7 +20,9 @@ jobs:
       - name: Test
         run: go test ./...
       - name: Shell syntax
-        run: bash -n install.sh uninstall.sh scripts/build-release.sh
+        run: bash -n install.sh uninstall.sh scripts/build-release.sh scripts/upgrade-preserve-config.sh
+      - name: Preserve existing configuration
+        run: python3 scripts/test_upgrade_config.py
 
   release-build:
     runs-on: ubuntu-latest

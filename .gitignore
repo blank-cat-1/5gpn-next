@@ -21,3 +21,7 @@ remote-env
 # 日志
 *.jsonl
 *.log
+
+# Local verification toolchain and caches
+.tools/
+__pycache__/

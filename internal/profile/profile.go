@@ -1,6 +1,6 @@
 // Package profile 生成 iOS 蜂窝加密 DNS 描述文件（.mobileconfig）。
 //
-// 描述文件仅在蜂窝数据下启用 DoT，Wi-Fi 自动停用；国内目标由
+// 描述文件在蜂窝及配置的热点下启用 DoT，其他 Wi-Fi 停用；国内目标由
 // GEOIP 判定后保持真实地址，由手机本地直连。
 package profile
 

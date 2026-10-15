@@ -8,7 +8,7 @@
 **iPhone 安装一张描述文件，Android 填一个私人 DNS 域名。**<br>
 分流、出口、广告拦截与诊断全部留在服务端完成。
 
-[![Release](https://img.shields.io/github/v/release/w0ven/5gpn-next?style=for-the-badge&color=155eef&label=Release)](https://github.com/w0ven/5gpn-next/releases)
+[![Release](https://img.shields.io/github/v/release/blank-cat-1/5gpn-next?style=for-the-badge&color=155eef&label=Release)](https://github.com/blank-cat-1/5gpn-next/releases)
 [![Go](https://img.shields.io/badge/Go-1.23+-00ADD8?style=for-the-badge&logo=go&logoColor=white)](https://go.dev)
 [![License](https://img.shields.io/badge/License-MIT-155eef?style=for-the-badge)](LICENSE)
 [![Platforms](https://img.shields.io/badge/iOS%2017%2B%20%7C%20Android%209%2B-122033?style=for-the-badge)](#-客户端接入)
@@ -16,6 +16,20 @@
 [🚀 快速安装](#quick-install) · [📱 客户端接入](#client-access) · [🧭 分流规则](#routing-rules) · [🛡️ 安全边界](#security) · [🩺 常见问题](#faq)
 
 </div>
+
+---
+
+## 当前定制版本
+
+本仓库 Fork 自 [w0ven/5gpn-next](https://github.com/w0ven/5gpn-next)，保留上游 MIT 许可与署名。
+当前版本为 **v0.13.27-custom.20261015.2**，以原项目功能和路由逻辑为准，采用分格玻璃卡片界面。
+
+- 网页和 Telegram 共用原有内网管理功能，不要求网页通过 Telegram 身份验证；Bot 仍验证管理员 ID。
+- 不包含新增的直连 / 分流 / 全局模式切换，保留原有出口、规则、广告拦截、诊断与健康监控。
+- 已有部署请按 [保留配置更新说明](UPGRADE.md) 更新；界面与入口说明见 [MINIAPP.md](MINIAPP.md)。
+- [下载当前版本](https://github.com/blank-cat-1/5gpn-next/releases/tag/v0.13.27-custom.20261015.2)。本次手动发布的二进制保持已部署版本不变，其内置在线更新仍关闭，后续使用本仓库提供的定制更新包。
+
+安装脚本及以后从源码正常构建的在线更新源指向本 Fork；Go 模块路径保留上游路径，便于同步更新。
 
 ---
 
@@ -99,7 +113,7 @@
 ### 一键安装
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/w0ven/5gpn-next/main/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/blank-cat-1/5gpn-next/main/install.sh | sudo bash
 ```
 
 安装器会自动完成：
@@ -120,7 +134,7 @@ sudo FGPN_FORCE_RECONFIG=1 bash install.sh
 ### 卸载
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/w0ven/5gpn-next/main/uninstall.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/blank-cat-1/5gpn-next/main/uninstall.sh | sudo bash
 ```
 
 追加 `--purge` 可一并删除配置与运行数据。
