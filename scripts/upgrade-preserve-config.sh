@@ -16,7 +16,7 @@ TARGET=$(cat "$PKG/VERSION")
 [ "$("$PKG/5gpnd-linux-amd64" version)" = "5gpn-next $TARGET" ] || { echo 'Package version mismatch.' >&2; exit 1; }
 CURRENT=$("$BIN" version)
 case "$CURRENT" in
-  '5gpn-next v0.13.27'|'5gpn-next v0.13.27-custom.20261015.1'|'5gpn-next v0.13.27-custom.20261015.2'|"5gpn-next $TARGET") ;;
+  '5gpn-next v0.13.27'|'5gpn-next v0.13.27-custom.20261015.1'|'5gpn-next v0.13.27-custom.20261015.2'|'5gpn-next v0.13.27-custom.20261016.1'|"5gpn-next $TARGET") ;;
   *) echo "This package supports v0.13.27 and the reviewed custom build; found: $CURRENT. No changes made." >&2; exit 1 ;;
 esac
 EXEC=$(systemctl show "$SERVICE" --property=ExecStart --value)
@@ -78,4 +78,4 @@ trap - ERR INT TERM
 printf '\nUpgrade complete: %s\nBackup: %s\n' "$TARGET" "$BACKUP"
 echo 'Configuration file was not modified. Browser and Mini App use the original internal-network access policy.'
 echo 'Existing data directories, certificates, firewall and service units were not replaced.'
-echo 'Use the custom update package for future upgrades; this build refuses upstream release downloads.'
+echo 'Bot updates are enabled. Future releases are checked and downloaded only from blank-cat-1/5gpn-next.'

@@ -1,21 +1,21 @@
 # 原功能分格面板更新
 
-版本：`v0.13.27-custom.20261016.1`；Linux x86_64。
-支持从原版 `v0.13.27`、第一版定制 `v0.13.27-custom.20261015.1` 或已部署的 `v0.13.27-custom.20261015.2` 更新。
+版本：`v0.13.27-custom.20261016.2`；Linux x86_64。
+支持从原版 `v0.13.27`、第一版定制 `v0.13.27-custom.20261015.1` 或已部署的 `v0.13.27-custom.20261015.2`、`v0.13.27-custom.20261016.1` 更新。
 
-本次只调整规则页显示：自定义规则置顶，自定义与内置规则分别折叠，点击标题展开。添加、删除后条数自动更新，实际规则匹配顺序不变。
+本次恢复 Bot 在线更新，检查和下载来源固定为 `blank-cat-1/5gpn-next`，不再使用上游发布源。保留上一版的规则折叠分组，路由和匹配顺序不变。
 
 继续保留原项目的管理功能与路由语义。
 网页和 Telegram 都使用原有内网访问限制，不要求网页验证 Telegram 身份。
 
 ## 更新
 
-从 [本仓库 Releases](https://github.com/blank-cat-1/5gpn-next/releases/tag/v0.13.27-custom.20261016.1) 下载更新包，上传到服务器 `/root/`，以 root 执行：
+从 [本仓库 Releases](https://github.com/blank-cat-1/5gpn-next/releases/tag/v0.13.27-custom.20261016.2) 下载更新包，上传到服务器 `/root/`，以 root 执行：
 
 ```sh
 cd /root
-tar -xzf 5gpn-next-v0.13.27-custom.20261016.1-linux-amd64.tar.gz
-cd 5gpn-next-v0.13.27-custom.20261016.1-linux-amd64
+tar -xzf 5gpn-next-v0.13.27-custom.20261016.2-linux-amd64.tar.gz
+cd 5gpn-next-v0.13.27-custom.20261016.2-linux-amd64
 bash update.sh
 5gpnd version
 ```
@@ -61,12 +61,15 @@ SH
 Go 1.23.12。在源码目录执行：
 
 ```sh
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags '-s -w -X main.version=v0.13.27-custom.20261016.1 -X github.com/w0ven/5gpn-next/internal/update.repo=' -o 5gpnd-linux-amd64 ./cmd/5gpnd
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags '-s -w -X main.version=v0.13.27-custom.20261016.2 -X github.com/w0ven/5gpn-next/internal/update.repo=blank-cat-1/5gpn-next' -o 5gpnd-linux-amd64 ./cmd/5gpnd
 ```
 
-手动构建将发布源置空，防止内置更新器下载上游原版覆盖定制面板，不修改用户的更新配置。
-以后继续使用本仓库的定制更新包。安装器及源码中的默认更新源已指向 `blank-cat-1/5gpn-next`；这不会改变已安装手动构建的行为。
+构建时将更新源固定为自己的 Fork，不接受客户端提供的仓库地址。也可以运行 `bash scripts/build-release.sh <版本号>`，会生成双架构程序及校验清单。
+
+此前 `.20261015.1`、`.20261015.2`、`.20261016.1` 的内置更新被编译关闭，因此首次接入必须手动安装本包；只改配置无法开启旧程序的更新源。
+安装本版后，在 Bot 私聊发送 `/start` →「更新」→「立即检查」。有后续版本时点击升级，即从自己的 Fork 下载、校验 SHA256、备份原程序并重启；失败由独立事务尝试回退。
+当前检查间隔和是否自动安装仍沿用原有配置，本次不改变这些选项。安装本版后如果它仍是最新 Release，Bot 应显示「已是最新版本」。
 
 包内 `update.sh` 来自 `scripts/upgrade-preserve-config.sh`；`check-config.py` 来自
 `scripts/check-upgrade-config.py`；`VERSION` 存放版本号；`SHA256SUMS` 校验其余文件。
-本更新包已通过编译、脚本语法与配置保留检查；本次规则分组的展开收起、添加删除与手机布局已通过本地浏览器检查。尚未在你的服务器执行本次更新。
+本更新包已检查构建来源、定制版本号排序、同版本与旧版本拒绝安装；保留 SHA256 验证及原有更新事务。尚未在你的服务器执行本次升级或验证真实的 Bot 重启流程。

@@ -24,6 +24,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"golang.org/x/mod/semver"
 )
 
 const (
@@ -460,6 +462,19 @@ func short(s string) string {
 
 // Newer 比较语义化版本，判断 a 是否比 b 新。
 func Newer(a, b string) bool {
+	// Custom release identifiers contain numeric components (for example .2
+	// and .10), which must not be compared as plain strings. Build metadata
+	// does not affect precedence. Retain the old fallback for legacy/dev names.
+	va, vb := strings.TrimSpace(a), strings.TrimSpace(b)
+	if !strings.HasPrefix(va, "v") {
+		va = "v" + va
+	}
+	if !strings.HasPrefix(vb, "v") {
+		vb = "v" + vb
+	}
+	if semver.IsValid(va) && semver.IsValid(vb) {
+		return semver.Compare(va, vb) > 0
+	}
 	pa, sa := parseVer(a)
 	pb, sb := parseVer(b)
 	for i := 0; i < 3; i++ {

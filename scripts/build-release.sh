@@ -23,12 +23,13 @@ esac
 
 cd "$(dirname "$0")/.."
 OUT=dist
+RELEASE_REPO=blank-cat-1/5gpn-next
 mkdir -p "$OUT"
 
 for arch in amd64 arm64; do
   echo "==> 构建 linux/$arch"
   CGO_ENABLED=0 GOOS=linux GOARCH="$arch" \
-    go build -trimpath -ldflags="-s -w -X main.version=${TAG}" \
+    go build -trimpath -ldflags="-s -w -X main.version=${TAG} -X github.com/w0ven/5gpn-next/internal/update.repo=${RELEASE_REPO}" \
     -o "${OUT}/5gpnd-linux-${arch}" ./cmd/5gpnd
 done
 
