@@ -15,14 +15,25 @@
       <h2 id="rules-title"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M8 21H3v-5M21 3l-7 7M3 21l7-7"/></svg></span>规则管理</h2>
       <span class="note">有序匹配 · 命中即停</span>
     </div>
-    <div id="rules-list" class="rows"></div>
-
-    <div class="form">
-      <label for="rule-input">添加规则</label>
-      <input id="rule-input" type="text" autocomplete="off" placeholder="DOMAIN-SUFFIX,openai.com,proxy:node">
-      <div class="act"><button class="btn" id="rule-add" type="button">添加规则</button></div>
-      <p class="hint"><b>类型：</b>DOMAIN、DOMAIN-SUFFIX、DOMAIN-KEYWORD、IP-CIDR、RULE-SET、GEOIP　·　<b>动作：</b>direct、block、proxy:出口名</p>
+    <div id="rules-list" class="rule-groups">
+      <details class="rule-group" id="custom-rules-group">
+        <summary><span>自定义规则</span><span class="rule-group-count" id="custom-rules-count">— 条</span></summary>
+        <div class="rule-group-content">
+          <div id="custom-rules-list" class="rows"></div>
+          <div class="form">
+            <label for="rule-input">添加规则</label>
+            <input id="rule-input" type="text" autocomplete="off" placeholder="DOMAIN-SUFFIX,openai.com,proxy:node">
+            <div class="act"><button class="btn" id="rule-add" type="button">添加规则</button></div>
+            <p class="hint"><b>类型：</b>DOMAIN、DOMAIN-SUFFIX、DOMAIN-KEYWORD、IP-CIDR、RULE-SET、GEOIP　·　<b>动作：</b>direct、block、proxy:出口名</p>
+          </div>
+        </div>
+      </details>
+      <details class="rule-group" id="builtin-rules-group">
+        <summary><span>内置规则</span><span class="rule-group-count" id="builtin-rules-count">— 条</span></summary>
+        <div class="rule-group-content"><div id="builtin-rules-list" class="rows"></div></div>
+      </details>
     </div>
+    <p class="hint">分组仅用于查看，实际匹配顺序与原项目一致。</p>
   </section></section><section class="view" data-page="nodes" hidden>  <section class="card" aria-labelledby="egress-title">
     <div class="chead">
       <h2 id="egress-title"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4M3 6h18M7 22l-4-4 4-4M21 18H3"/></svg></span>国外默认出口</h2>

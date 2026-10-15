@@ -294,15 +294,18 @@ async function egressAction(action, extra) {
 // ---------- 规则 ----------
 
 function renderRules(data) {
-  const box = $('rules-list');
+  const box = $('custom-rules-list');
   box.textContent = '';
+  const builtinBox = $('builtin-rules-list');
+  builtinBox.textContent = '';
   const rules = data.rules || [];
   const pre = data.builtin_pre || [];
   const post = data.builtin_post || [];
 
-  pre.forEach((rule) => box.appendChild(builtinRow(rule, '内置 · 优先')));
+  $('custom-rules-count').textContent = number(rules.length) + ' 条';
+  $('builtin-rules-count').textContent = number(pre.length + post.length) + ' 条';
   if (!rules.length) {
-    box.appendChild(el('p', 'empty', '暂无自定义规则。国内直连、国外走出口已由内置策略完成。'));
+    box.appendChild(el('p', 'empty', '暂无自定义规则，可在下方添加。'));
   }
   rules.forEach((rule, index) => {
     const row = el('div', 'row');
@@ -326,7 +329,9 @@ function renderRules(data) {
     row.appendChild(acts);
     box.appendChild(row);
   });
-  post.forEach((rule) => box.appendChild(builtinRow(rule, '内置 · 兜底')));
+  pre.forEach((rule) => builtinBox.appendChild(builtinRow(rule, '内置 · 优先')));
+  post.forEach((rule) => builtinBox.appendChild(builtinRow(rule, '内置 · 兜底')));
+  if (!pre.length && !post.length) builtinBox.appendChild(el('p', 'empty', '暂无内置规则。'));
 }
 
 function builtinRow(rule, label) {
@@ -435,6 +440,7 @@ $('rule-add').onclick = async () => {
   try {
     await api('/api/rules', { method: 'POST', body: JSON.stringify({ rule }) });
     await loadRules();
+    $('custom-rules-group').open = true;
     $('rule-input').value = '';
     toast('规则已添加');
   } catch (err) {

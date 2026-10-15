@@ -1,19 +1,21 @@
 # 原功能分格面板更新
 
-版本：`v0.13.27-custom.20261015.2`；Linux x86_64。
-支持从原版 `v0.13.27` 或第一版定制 `v0.13.27-custom.20261015.1` 更新。
+版本：`v0.13.27-custom.20261016.1`；Linux x86_64。
+支持从原版 `v0.13.27`、第一版定制 `v0.13.27-custom.20261015.1` 或已部署的 `v0.13.27-custom.20261015.2` 更新。
 
-这版保留原项目的管理功能与路由语义，去掉新增的路由模式。
+本次只调整规则页显示：自定义规则置顶，自定义与内置规则分别折叠，点击标题展开。添加、删除后条数自动更新，实际规则匹配顺序不变。
+
+继续保留原项目的管理功能与路由语义。
 网页和 Telegram 都使用原有内网访问限制，不要求网页验证 Telegram 身份。
 
 ## 更新
 
-从 [本仓库 Releases](https://github.com/blank-cat-1/5gpn-next/releases/tag/v0.13.27-custom.20261015.2) 下载更新包，上传到服务器 `/root/`，以 root 执行：
+从 [本仓库 Releases](https://github.com/blank-cat-1/5gpn-next/releases/tag/v0.13.27-custom.20261016.1) 下载更新包，上传到服务器 `/root/`，以 root 执行：
 
 ```sh
 cd /root
-tar -xzf 5gpn-next-v0.13.27-custom.20261015.2-linux-amd64.tar.gz
-cd 5gpn-next-v0.13.27-custom.20261015.2-linux-amd64
+tar -xzf 5gpn-next-v0.13.27-custom.20261016.1-linux-amd64.tar.gz
+cd 5gpn-next-v0.13.27-custom.20261016.1-linux-amd64
 bash update.sh
 5gpnd version
 ```
@@ -59,7 +61,7 @@ SH
 Go 1.23.12。在源码目录执行：
 
 ```sh
-GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags '-s -w -X main.version=v0.13.27-custom.20261015.2 -X github.com/w0ven/5gpn-next/internal/update.repo=' -o 5gpnd-linux-amd64 ./cmd/5gpnd
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags '-s -w -X main.version=v0.13.27-custom.20261016.1 -X github.com/w0ven/5gpn-next/internal/update.repo=' -o 5gpnd-linux-amd64 ./cmd/5gpnd
 ```
 
 手动构建将发布源置空，防止内置更新器下载上游原版覆盖定制面板，不修改用户的更新配置。
@@ -67,4 +69,4 @@ GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags '-s -w -X main
 
 包内 `update.sh` 来自 `scripts/upgrade-preserve-config.sh`；`check-config.py` 来自
 `scripts/check-upgrade-config.py`；`VERSION` 存放版本号；`SHA256SUMS` 校验其余文件。
-本更新包已通过编译、脚本语法与配置保留检查，并已在当前服务器确认版本为 `.2`、服务为 `active`。网页及手机实际网络行为仍需在自己的环境验证。
+本更新包已通过编译、脚本语法与配置保留检查；本次规则分组的展开收起、添加删除与手机布局已通过本地浏览器检查。尚未在你的服务器执行本次更新。
