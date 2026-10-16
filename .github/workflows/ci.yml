@@ -5,6 +5,12 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Version embedded in the checked release binaries
+        required: false
+        type: string
+        default: v0.0.0
 
 permissions:
   contents: read
@@ -43,9 +49,9 @@ jobs:
         with:
           go-version-file: go.mod
       - name: Build release binaries
-        # 用占位 tag 验证脚本：版本注入与 SHA256SUMS 必须同时成功。
-        # 正式发布仍由 scripts/build-release.sh <真实 tag> 产出后上传 GitHub Release。
-        run: bash scripts/build-release.sh v0.0.0
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag || 'v0.0.0' }}
+        run: bash scripts/build-release.sh "$RELEASE_TAG"
       - name: Upload dist
         uses: actions/upload-artifact@v4
         with:

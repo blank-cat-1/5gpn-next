@@ -16,7 +16,7 @@ TARGET=$(cat "$PKG/VERSION")
 [ "$("$PKG/5gpnd-linux-amd64" version)" = "5gpn-next $TARGET" ] || { echo 'Package version mismatch.' >&2; exit 1; }
 CURRENT=$("$BIN" version)
 case "$CURRENT" in
-  '5gpn-next v0.13.27'|'5gpn-next v0.13.27-custom.20261015.1'|'5gpn-next v0.13.27-custom.20261015.2'|'5gpn-next v0.13.27-custom.20261016.1'|"5gpn-next $TARGET") ;;
+  '5gpn-next v0.13.27'|'5gpn-next v0.13.27-custom.20261015.1'|'5gpn-next v0.13.27-custom.20261015.2'|'5gpn-next v0.13.27-custom.20261016.1'|'5gpn-next v0.13.27-custom.20261016.2'|"5gpn-next $TARGET") ;;
   *) echo "This package supports v0.13.27 and the reviewed custom build; found: $CURRENT. No changes made." >&2; exit 1 ;;
 esac
 EXEC=$(systemctl show "$SERVICE" --property=ExecStart --value)
