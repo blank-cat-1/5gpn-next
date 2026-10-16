@@ -7,8 +7,8 @@
 <button class="glass overview-card" data-view="tools" data-section="status-title"><div class="micro-heading"><span>运行概览</span><span class="small-pill" id="home-domestic-state">同步中</span></div><div class="overview-count"><strong id="home-rule-count">—</strong><span>条策略规则</span></div><p class="overview-runtime" id="home-run-time">等待网关连接</p><div class="tile-bottom"><span>查看状态</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></div></button>
 <button class="glass exit-card" data-view="nodes"><div class="exit-top"><svg class="icon" aria-hidden="true"><use href="#i-server"/></svg><span class="small-pill">出口配置</span></div><div class="exit-name"><span class="node-dot"></span><strong id="hero-egress">等待连接</strong></div><p class="exit-caption" id="exit-caption">查看并选择出口节点</p><div class="tile-bottom"><span>管理出口</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></div></button>
 <section class="glass protection-strip"><button class="protection-open" data-view="protection"><span class="strip-icon"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg></span><span class="strip-copy"><strong>广告拦截</strong><small id="home-protection-detail">等待同步拦截状态</small></span></button><button class="switch-visual" id="home-adblock-state" type="button" role="switch" aria-checked="false" aria-label="启用广告拦截" disabled><i></i></button></section></div>
-<div class="quick-actions"><button class="shortcut" data-view="rules"><span><svg class="icon" aria-hidden="true"><use href="#i-split"/></svg></span><small>规则管理</small></button><button class="shortcut" data-view="tools" data-section="probe-title"><span><svg class="icon" aria-hidden="true"><use href="#i-wifi"/></svg></span><small>连通诊断</small></button><button class="shortcut" data-view="tools" data-section="health-title"><span><svg class="icon" aria-hidden="true"><use href="#i-activity"/></svg></span><small>健康监控</small></button><button class="shortcut" data-view="protection"><span><svg class="icon" aria-hidden="true"><use href="#i-list"/></svg></span><small>拦截记录</small></button></div>
-<div class="lower-grid"><button class="glass node-tile" data-view="nodes"><div class="node-tile-top"><svg class="icon" aria-hidden="true"><use href="#i-nodes"/></svg><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></div><strong>节点与出口</strong><p>原有配置，集中管理。</p><small id="home-node-count">管理节点 · 切换出口</small></button><div class="theme-pair" aria-label="外观"><button class="glass theme-pillar selected" data-theme="light" aria-pressed="true"><span class="pillar-fill"></span><span class="pillar-label"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg><small>明亮</small></span></button><button class="glass theme-pillar" data-theme="dark" aria-pressed="false"><span class="pillar-fill"></span><span class="pillar-label"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg><small>深色</small></span></button></div></div>
+<div class="quick-actions"><button class="shortcut" data-view="rules"><span><svg class="icon" aria-hidden="true"><use href="#i-split"/></svg></span><small>规则管理</small></button><button class="shortcut" data-view="tools" data-section="probe-title"><span><svg class="icon" aria-hidden="true"><use href="#i-wifi"/></svg></span><small>连通诊断</small></button><button class="shortcut" data-view="tools" data-section="health-title"><span><svg class="icon" aria-hidden="true"><use href="#i-activity"/></svg></span><small>健康监控</small></button><button class="shortcut" data-view="logs"><span><svg class="icon" aria-hidden="true"><use href="#i-list"/></svg></span><small>服务日志</small></button></div>
+<div class="lower-grid"><button class="glass node-tile" data-view="nodes"><div class="node-tile-top"><svg class="icon" aria-hidden="true"><use href="#i-nodes"/></svg><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></div><strong>节点与订阅</strong><p>你的节点，一处管理。</p><small id="home-node-count">管理节点 · 更新订阅</small></button><div class="theme-pair" aria-label="外观"><button class="glass theme-pillar selected" data-theme="light" aria-pressed="true"><span class="pillar-fill"></span><span class="pillar-label"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg><small>明亮</small></span></button><button class="glass theme-pillar" data-theme="dark" aria-pressed="false"><span class="pillar-fill"></span><span class="pillar-label"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg><small>深色</small></span></button></div></div>
 <section class="glass live-stats"><div class="stats-title"><span class="tiny-dot"></span>运行摘要<span>LIVE</span></div><div class="stats-numbers"><div><strong id="hero-dns">—</strong><small>DNS 查询</small></div><div><strong id="hero-blocked">—</strong><small>今日拦截</small></div><div><strong id="home-memory">—</strong><small>运行内存</small></div></div></section><div class="service-foot"><span class="tiny-dot"></span><span id="hero-uptime">等待连接网关</span><span class="preview-label" id="preview-label" hidden>演示数据</span></div></section>
 <section class="view" data-page="rules" hidden>  <section class="card" aria-labelledby="rules-title">
     <div class="chead">
@@ -34,11 +34,24 @@
       </details>
     </div>
     <p class="hint">分组仅用于查看，实际匹配顺序与原项目一致。</p>
-  </section></section><section class="view" data-page="nodes" hidden>  <section class="card" aria-labelledby="egress-title">
+  </section></section><section class="view" data-page="nodes" hidden>
+  <section class="card" aria-labelledby="subscriptions-title">
+    <div class="chead"><h2 id="subscriptions-title"><svg class="icon" aria-hidden="true"><use href="#i-nodes"/></svg>节点订阅</h2><button class="btn btn-sm" id="subscriptions-refresh" type="button">刷新列表</button></div>
+    <p class="intro">先添加订阅，再选择需要的节点导入。更新订阅只刷新已导入的节点。</p>
+    <div id="subscriptions-list" class="rows"><p class="empty">打开后读取订阅</p></div>
+    <form id="subscription-form" class="form">
+      <label for="subscription-name">订阅名称</label><input id="subscription-name" type="text" maxlength="60" autocomplete="off" placeholder="例如：常用订阅（选填）">
+      <label for="subscription-url">订阅链接</label><input id="subscription-url" type="url" required maxlength="4096" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://example.com/subscribe?token=…">
+      <div class="act"><button class="btn" id="subscription-add" type="submit">添加订阅</button></div>
+      <p class="hint">支持 Clash YAML、Base64 和节点链接列表。添加后显示候选节点，不会自动加入节点列表。每个订阅最多 256 个候选节点。</p>
+    </form>
+  </section>
+  <section class="card" aria-labelledby="egress-title">
     <div class="chead">
-      <h2 id="egress-title"><span class="ico"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4M3 6h18M7 22l-4-4 4-4M21 18H3"/></svg></span>国外默认出口</h2>
+      <h2 id="egress-title"><svg class="icon" aria-hidden="true"><use href="#i-nodes"/></svg>节点列表</h2><button class="btn btn-sm" id="egress-test-all" type="button">一键测速</button>
     </div>
     <p class="intro">沿用原项目逻辑：切换国外默认出口，自定义规则与内置规则保持原有优先级。</p>
+    <p class="hint latency-caption" id="egress-latency-state" role="status">HTTP 延迟由服务器经节点测得，点击一键测速开始。</p>
     <div id="egress-list" class="rows"></div>
 
     <div class="form">
@@ -105,6 +118,24 @@
       </div>
     </div>
   </section></section>
+<section class="view" data-page="logs" hidden>
+  <section class="card" aria-labelledby="logs-title">
+    <div class="chead"><h2 id="logs-title"><svg class="icon" aria-hidden="true"><use href="#i-list"/></svg>服务日志</h2><button class="btn btn-sm" id="logs-refresh" type="button">刷新日志</button></div>
+    <p class="intro">网关的启动、运行与错误记录，按时间排列。</p>
+    <div class="logs-toolbar"><label for="logs-lines">最近 <select id="logs-lines"><option value="100">100 条</option><option value="200" selected>200 条</option><option value="500">500 条</option></select></label><label><input id="logs-auto" type="checkbox"> 自动刷新</label></div>
+    <p class="hint" id="logs-state" role="status">打开后读取日志</p>
+    <div class="service-logs" id="service-logs" aria-label="服务日志内容"><p class="empty">暂未读取日志</p></div>
+  </section>
+</section>
 <section class="view" data-page="settings" hidden><section class="card"><div class="chead"><h2>外观设置</h2></div><p class="intro">让控制中心更像你。</p><div class="settings-appearance"><button class="btn" data-theme="light"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg> 明亮</button><button class="btn" data-theme="dark"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg> 深色</button></div><button class="setting-row" data-pick-wallpaper><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><span>选择背景图片<small>仅保留在当前页面会话</small></span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></button><button class="setting-row" id="wallpaper-reset"><svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg><span>恢复默认背景</span><svg class="icon" aria-hidden="true"><use href="#i-chevron"/></svg></button></section><section class="card"><div class="chead"><h2>访问权限</h2><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg></div><p class="intro" id="access-detail">正在验证</p><div class="setting-row"><span>服务版本</span><code>{{.Version}}</code></div><p class="hint">请在允许的内网中使用。机器人菜单仍按配置的 Telegram 管理员 ID 响应。</p></section></section>
-</main><div id="toast" class="toast" hidden role="status" aria-live="polite"></div></div>
+</main><dialog class="glass subscription-dialog" id="subscription-picker" aria-labelledby="subscription-picker-title" aria-describedby="subscription-picker-name" hidden>
+  <header class="picker-header"><div><p class="picker-eyebrow">节点订阅</p><h2 id="subscription-picker-title">选择需要的节点</h2></div><button class="round-btn picker-close" id="subscription-picker-close" type="button" aria-label="关闭节点选择" autofocus><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m7 7 10 10M17 7 7 17"/></svg></button></header>
+  <p class="picker-description" id="subscription-picker-name"></p>
+  <div class="picker-search"><svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 4.5 4.5"/></svg><input id="subscription-search" type="search" autocomplete="off" placeholder="搜索节点名称、协议或服务器" aria-label="搜索候选节点"></div>
+  <div class="candidate-toolbar"><button class="btn btn-sm" id="subscription-select-all" type="button">全选搜索结果</button><button class="btn btn-sm" id="subscription-select-none" type="button">清空选择</button><span id="subscription-selected-count" aria-live="polite">已选 0 个</span></div>
+  <div id="subscription-candidates" class="candidate-list"></div>
+  <footer class="picker-footer"><p>只导入你选中的节点<br><span>已导入的节点会保留在节点列表中</span></p><button class="btn picker-import" id="subscription-import" type="button" disabled>导入选中节点</button></footer>
+  <p class="picker-error" id="subscription-picker-error" role="alert" hidden></p>
+</dialog>
+<div id="toast" class="toast" hidden role="status" aria-live="polite"></div></div>
 <nav class="dock" id="management-dock" aria-label="主导航" hidden><button class="active" data-view="home"><span><svg class="icon" aria-hidden="true"><use href="#i-home"/></svg></span><small>首页</small></button><button class="nav-item" data-view="rules"><span><svg class="icon" aria-hidden="true"><use href="#i-split"/></svg></span><small>规则</small></button><button class="nav-item" data-view="nodes"><span><svg class="icon" aria-hidden="true"><use href="#i-nodes"/></svg></span><small>节点</small></button><button class="nav-item" data-view="tools"><span><svg class="icon" aria-hidden="true"><use href="#i-activity"/></svg></span><small>诊断</small></button><button class="nav-item" data-view="settings"><span><svg class="icon" aria-hidden="true"><use href="#i-sliders"/></svg></span><small>设置</small></button></nav><script src="/app.js"></script></body></html>

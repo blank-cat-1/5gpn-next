@@ -24,6 +24,9 @@ type Config struct {
 	// 出口列表
 	Egress []EgressConfig `json:"egress"`
 
+	// 节点订阅与规则集订阅独立；URL 可能含凭据，只保存在服务端。
+	Subscriptions []SubscriptionConfig `json:"subscriptions,omitempty"`
+
 	// 分流规则（有序）
 	Rules []string `json:"rules"`
 
@@ -177,7 +180,28 @@ type EgressConfig struct {
 	// Proto 是节点真实协议（ss/vless/trojan/...），仅用于展示。
 	Proto string `json:"proto,omitempty"`
 	// Server 是节点服务器 host:port，仅用于展示。
-	Server string `json:"server,omitempty"`
+	Server          string `json:"server,omitempty"`
+	SubscriptionID  string `json:"subscription_id,omitempty"`
+	SubscriptionKey string `json:"subscription_key,omitempty"`
+}
+
+type SubscriptionConfig struct {
+	ID         string             `json:"id"`
+	Name       string             `json:"name"`
+	URL        string             `json:"url"`
+	UpdatedAt  int64              `json:"updated_at"`
+	Revision   string             `json:"revision,omitempty"`
+	Candidates []SubscriptionNode `json:"candidates,omitempty"`
+}
+
+// SubscriptionNode is a saved candidate, not an active gateway exit. Proxy
+// credentials stay in the private server configuration and never reach APIs.
+type SubscriptionNode struct {
+	Key    string         `json:"key"`
+	Name   string         `json:"name"`
+	Type   string         `json:"type"`
+	Server string         `json:"server"`
+	Proxy  map[string]any `json:"proxy"`
 }
 
 // AdBlockConfig 控制广告拦截。
@@ -564,6 +588,9 @@ func WriteFileSandboxSafe(path string, data []byte, mode os.FileMode) error {
 
 // Validate 做基本校验。
 func (c *Config) Validate() error {
+	if err := c.validateSubscriptions(); err != nil {
+		return err
+	}
 	if c.Gateway.Listen == "" {
 		return fmt.Errorf("gateway.listen 不能为空")
 	}

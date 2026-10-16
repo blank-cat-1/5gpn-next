@@ -7,9 +7,11 @@ package manage
 import (
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io"
 	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"runtime"
@@ -38,7 +40,17 @@ type StatsSource interface {
 
 // Manager 是管理动作的唯一入口。
 type Manager struct {
-	mu sync.RWMutex
+	mu              sync.RWMutex
+	subMu           sync.Mutex
+	subRuntime      subscriptionRuntime
+	subClient       *http.Client
+	journalRead     func(context.Context, int) ([]byte, error)
+	configWrite     func(string, []byte, os.FileMode) error
+	latencyMu       sync.Mutex
+	latencyResults  map[string]cachedNodeLatency
+	latencyProgress EgressTestProgress
+	latencySlots    chan struct{}
+	latencyProbe    func(context.Context, string) (time.Duration, error)
 
 	ConfigPath string
 	Cfg        *config.Config
@@ -120,17 +132,18 @@ func (m *Manager) SetRuntime(p *policy.Engine, e *egress.Registry) {
 
 // Status 是面板与 Bot 共用的状态快照。
 type Status struct {
-	Version       string           `json:"version"`
-	Uptime        string           `json:"uptime"`
-	Listen        string           `json:"listen"`
-	Host          string           `json:"host"`
-	Rules         int              `json:"rules"`
-	Egress        []EgressStatus   `json:"egress"`
-	Final         string           `json:"final"`
-	Counters      map[string]int64 `json:"counters"`
-	MemoryMB      float64          `json:"memory_mb"`
-	CertUntil     string           `json:"cert_until,omitempty"`
-	DomesticReady bool             `json:"domestic_ready"`
+	Version       string             `json:"version"`
+	Uptime        string             `json:"uptime"`
+	Listen        string             `json:"listen"`
+	Host          string             `json:"host"`
+	Rules         int                `json:"rules"`
+	Egress        []EgressStatus     `json:"egress"`
+	Final         string             `json:"final"`
+	Counters      map[string]int64   `json:"counters"`
+	MemoryMB      float64            `json:"memory_mb"`
+	CertUntil     string             `json:"cert_until,omitempty"`
+	DomesticReady bool               `json:"domestic_ready"`
+	LatencyTest   EgressTestProgress `json:"latency_test"`
 	// AdBlock 是广告拦截状态
 	AdBlock AdBlockStatus `json:"ad_block"`
 }
@@ -158,8 +171,10 @@ type EgressStatus struct {
 	// Server 为节点服务器 host:port（仅代理出口）
 	Server string `json:"server,omitempty"`
 	// HasIPv6 表示该出口能否代拨 IPv6 目标（自动探测）
-	HasIPv6 bool `json:"has_ipv6"`
-	Current bool `json:"current"`
+	HasIPv6        bool         `json:"has_ipv6"`
+	Current        bool         `json:"current"`
+	SubscriptionID string       `json:"subscription_id,omitempty"`
+	Latency        *NodeLatency `json:"latency,omitempty"`
 }
 
 // Status 返回当前状态。
@@ -167,6 +182,7 @@ func (m *Manager) Status(version string) Status {
 	m.mu.RLock()
 	cfg := *m.Cfg
 	cfg.Egress = append([]config.EgressConfig(nil), m.Cfg.Egress...)
+	cfg.Subscriptions = append([]config.SubscriptionConfig(nil), m.Cfg.Subscriptions...)
 	cfg.AdBlock.Allowlist = append([]string(nil), m.Cfg.AdBlock.Allowlist...)
 	eng := m.Policy
 	m.mu.RUnlock()
@@ -189,10 +205,12 @@ func (m *Manager) Status(version string) Status {
 		}
 		es = append(es, EgressStatus{
 			Name: e.Name, Type: proto, Addr: e.Addr,
-			Display: displayOf(e),
-			Server:  e.Server,
-			HasIPv6: e.HasIPv6,
-			Current: strings.EqualFold(e.Name, cur),
+			Display:        displayOf(e),
+			Server:         e.Server,
+			HasIPv6:        e.HasIPv6,
+			Current:        strings.EqualFold(e.Name, cur),
+			SubscriptionID: e.SubscriptionID,
+			Latency:        m.nodeLatency(e.Name, latencyFingerprint(e, cfg.Subscriptions)),
 		})
 	}
 
@@ -206,6 +224,7 @@ func (m *Manager) Status(version string) Status {
 		Final:         effectiveFinal,
 		MemoryMB:      memoryMB(),
 		DomesticReady: eng.DomesticRulesReady(),
+		LatencyTest:   m.LatencyProgress(),
 		AdBlock: AdBlockStatus{
 			Enabled:      cfg.AdBlock.Enabled,
 			Domains:      eng.DomainSetLen(config.AdBlockRuleSetName),
@@ -514,6 +533,9 @@ func (m *Manager) RemoveEgress(name string) error {
 	if idx < 0 {
 		return fmt.Errorf("出口 %q 不存在", name)
 	}
+	if m.Cfg.Egress[idx].SubscriptionID != "" {
+		return fmt.Errorf("这是订阅节点，请在节点与订阅页面管理对应订阅")
+	}
 
 	_ = systemctl("disable", "--now", "mihomo-5gpn@"+name+".service")
 	_ = os.RemoveAll(egressDir + "/" + name)
@@ -548,38 +570,7 @@ func (m *Manager) RemoveEgress(name string) error {
 
 // TestEgress 端到端测试一个出口，返回耗时。
 func (m *Manager) TestEgress(name string) (time.Duration, error) {
-	m.mu.RLock()
-	addr := ""
-	found := false
-	for _, e := range m.Cfg.Egress {
-		if e.Name == name {
-			found = true
-			addr = e.Addr
-			break
-		}
-	}
-	m.mu.RUnlock()
-	if !found && name != "DIRECT" {
-		return 0, fmt.Errorf("出口 %q 不存在", name)
-	}
-
-	start := time.Now()
-	if addr == "" {
-		// DIRECT：本机直接连测试目标
-		ctx, cancel := context.WithTimeout(context.Background(), 6*time.Second)
-		defer cancel()
-		var d net.Dialer
-		c, err := d.DialContext(ctx, "tcp", "cp.cloudflare.com:80")
-		if err != nil {
-			return 0, err
-		}
-		c.Close()
-		return time.Since(start), nil
-	}
-	if err := verifyEgress(addr, 8*time.Second); err != nil {
-		return 0, err
-	}
-	return time.Since(start), nil
+	return m.testNamedEgress(name)
 }
 
 // SwitchEgress 切换默认出口。
@@ -1143,29 +1134,51 @@ func (m *Manager) ReloadRuntime() error {
 // saveAndReloadLocked 保存配置并热重载。调用方须持有写锁。
 //
 // 失败时回滚到磁盘上的旧配置，避免内存态与磁盘态不一致。
+var errConfigRollback = errors.New("配置恢复未完成")
+
 func (m *Manager) saveAndReloadLocked() error {
 	backup := m.ConfigPath + ".rollback"
-	if b, err := os.ReadFile(m.ConfigPath); err == nil {
-		_ = os.WriteFile(backup, b, 0o600)
+	previous, err := os.ReadFile(m.ConfigPath)
+	if err != nil {
+		return fmt.Errorf("读取原配置失败，未保存变更: %w", err)
+	}
+	write := m.configWrite
+	if write == nil {
+		write = config.WriteFileSandboxSafe
+	}
+	// /etc can be read-only inside the service. Backup and restoration must use
+	// the same atomic sandbox-safe write path as Config.Save.
+	if err := write(backup, previous, 0o600); err != nil {
+		if c, loadErr := config.Load(m.ConfigPath); loadErr == nil {
+			m.Cfg = c
+		}
+		return fmt.Errorf("备份原配置失败，未保存变更: %w", err)
 	}
 	if err := m.Cfg.Save(m.ConfigPath); err != nil {
+		if c, loadErr := config.Load(m.ConfigPath); loadErr == nil {
+			m.Cfg = c
+		}
 		return fmt.Errorf("保存配置失败: %w", err)
 	}
 	if m.Reload == nil {
+		_ = os.Remove(backup)
 		return nil
 	}
 	p, e, err := m.Reload()
 	if err != nil {
-		// 回滚
-		if b, rerr := os.ReadFile(backup); rerr == nil {
-			_ = os.WriteFile(m.ConfigPath, b, 0o600)
-			if c, cerr := config.Load(m.ConfigPath); cerr == nil {
-				m.Cfg = c
-			}
-			if rp, re, rerr2 := m.Reload(); rerr2 == nil {
-				m.Policy, m.Egress = rp, re
-			}
+		if rerr := write(m.ConfigPath, previous, 0o600); rerr != nil {
+			return fmt.Errorf("%w: 原配置文件恢复失败", errConfigRollback)
 		}
+		c, cerr := config.Load(m.ConfigPath)
+		if cerr != nil {
+			return fmt.Errorf("%w: 原配置文件已恢复，但重新读取失败", errConfigRollback)
+		}
+		m.Cfg = c
+		rp, re, rerr := m.Reload()
+		if rerr != nil {
+			return fmt.Errorf("%w: 原配置文件已恢复，但运行态恢复失败", errConfigRollback)
+		}
+		m.Policy, m.Egress = rp, re
 		return fmt.Errorf("应用配置失败，已回滚: %w", err)
 	}
 	// 调用方已持有写锁，直接赋值

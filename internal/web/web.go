@@ -98,6 +98,9 @@ func (p *Panel) Handler() http.Handler {
 	mux.HandleFunc("/api/egress", p.apiGuard(p.apiEgress))
 	mux.HandleFunc("/api/probe", p.apiGuard(p.apiProbe))
 	mux.HandleFunc("/api/health", p.apiGuard(p.apiHealth))
+	mux.HandleFunc("/api/subscriptions", p.apiGuard(p.apiSubscriptions))
+	mux.HandleFunc("/api/logs", p.apiGuard(p.apiLogs))
+	mux.HandleFunc("/api/egress-latency", p.apiGuard(p.apiEgressLatency))
 
 	return mux
 }
